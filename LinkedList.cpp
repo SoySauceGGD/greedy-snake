@@ -38,7 +38,8 @@ class LinkedList{
                 return;
             }
 
-            for(Node *i = head->next; i != NULL; i = i->next) cout << i->valu << " ";
+            for(Node *i = head->next; i != NULL; i = i->next)
+                cout << i->valu << " ";
             cout << "\n";
         }
 };
