@@ -46,16 +46,12 @@ class Screen{
             Map[p.first][p.second] = c;
         }
 
-        char **getXYC(int x, int y){
-            return (char**)Map[x][y];
-        }
-
-        char getXYChar(int x, int y){
+        /*char getXYChar(int x, int y){
             return Map[x][y];
         }
         char getXYChar(pos p){
             return Map[p.first][p.second];
-        }
+        }*/
 };
 
 class RamdomGen{
@@ -64,16 +60,16 @@ class RamdomGen{
 
     public:
         pos gen(){
-            mt19937 gen(rd() + time(NULL));
+            mt19937 generator(rd() + time(NULL));
             uniform_int_distribution<int> uid(1, N-2);
-            return make_pair(uid(gen), uid(gen));
+            return make_pair(uid(generator), uid(generator));
         }
 
 };
 
 class Snake{
     private:
-        queue<pair<char**, pos>> snake;
+        queue<pos> snake;
         set<pos> snake_set;
         Screen map;
         RamdomGen ramdom;
@@ -86,24 +82,25 @@ class Snake{
 
             int x = N / 2, y = N / 2;
             for(int i = 0; i < 4; i++){
-                snake.push(make_pair(map.getXYC(x + i, y), make_pair(x + i, y)));
+                snake.push(make_pair(x + i, y));
                 snake_set.insert(make_pair(x + i, y));
                 map.setXYC(x + i, y, SNAKE_BODY);
             }
-            map.setXYC(x, y, SNAKE_HEAD);
+            map.setXYC(x + 3, y, SNAKE_HEAD);
             dire = 'W';
 
             food_pos = GenFood();
             map.print();
         }
 
-        bool oper(){/*
-            move();
-            if(!isAlive()){
+        bool oper(){
+            move1();
+            /*if(!isAlive()){
                 return false;
-            }
+            }*/
             map.print();
-        */}
+            return true;
+        }
 
         void move1(){
             char in;
@@ -115,19 +112,32 @@ class Snake{
                 goto start;
         }
 
-        void move2(char c){
-            int x = snake.front().second.first,
-                y = snake.front().second.second;
+        void move2(char in){
+            pos old_head = snake.back();
+            pos new_head = old_head;
+            switch(in){
+                case 'W':   case 'S':
+                    dire = (in == 'W' ? 'S' : 'W');
+                    new_head.first += (in == 'W' ? -1 : 1);
+                    break;
 
-            switch(c){
-                case 'W':
-                    if(map.getXYChar(x - 1, y) != FOOD){
-                        snake_set.erase(snake.back().second);
-                        snake.pop();
-                    }
-                    //snake.front().second;
+                case 'A':   case 'D':
+                    dire = (in == 'A' ? 'D' : 'A');
+                    new_head.second += (in == 'A' ? -1 : 1);
                     break;
             }
+            if(new_head != food_pos){
+                map.setXYC(snake.front(), ' ');
+                snake_set.erase(snake.front());
+                snake.pop();
+            }else{
+                GenFood();
+            }
+            snake.push(new_head);
+            snake_set.insert(new_head);
+
+            map.setXYC(old_head, SNAKE_BODY);
+            map.setXYC(new_head, SNAKE_HEAD);
         }
 
         bool isAlive(){
@@ -141,14 +151,14 @@ class Snake{
                 tmp = ramdom.gen();
             }
             map.setXYC(tmp, FOOD);
+            food_pos = tmp;
             return tmp;
         }
 };
 
 int main(){
     Snake snake;
+    while(snake.oper());
 
-    while(snake.oper()){
-    }
     system("PAUSE");
 }
