@@ -7,6 +7,7 @@
 using namespace std;
 
 const int N = 30;
+const char WALL = '#';
 const char FOOD = '@';
 const char SNAKE_HEAD = '+';
 const char SNAKE_BODY = '*';
@@ -20,10 +21,10 @@ class Screen{
     public:
         void init(){
             for(int i=0; i<N; i++){
-                Map[0][i] = '#';
-                Map[i][0] = '#';
-                Map[N-1][i] = '#';
-                Map[i][N-1] = '#';
+                Map[0][i] = WALL;
+                Map[i][0] = WALL;
+                Map[N-1][i] = WALL;
+                Map[i][N-1] = WALL;
             }
             for(int i=1; i<N-1; i++){
                 for(int j=1; j<N-1; j++)
@@ -32,6 +33,7 @@ class Screen{
         }
 
         void print(){
+            system("cls");
             for(int i=0; i<N; i++){
                 for(int j=0; j<N; j++)
                     cout << Map[i][j] << " ";
@@ -46,12 +48,9 @@ class Screen{
             Map[p.first][p.second] = c;
         }
 
-        /*char getXYChar(int x, int y){
-            return Map[x][y];
-        }
         char getXYChar(pos p){
             return Map[p.first][p.second];
-        }*/
+        }
 };
 
 class RamdomGen{
@@ -88,33 +87,22 @@ class Snake{
             }
             map.setXYC(x + 3, y, SNAKE_HEAD);
             dire = 'W';
-
             food_pos = GenFood();
             map.print();
         }
 
         bool oper(){
-            move1();
-            /*if(!isAlive()){
+            if(!move()){
                 return false;
-            }*/
+            }
             map.print();
             return true;
         }
 
-        void move1(){
-            char in;
-            start:
-            cin >> in; in = toupper(in);
-            if(in != dire && (in == 'W' || in == 'S' || in == 'A' || in == 'D'))
-                move2(in);
-            else
-                goto start;
-        }
-
-        void move2(char in){
-            pos old_head = snake.back();
-            pos new_head = old_head;
+        bool move(){
+            char in = getDire();
+            pos old_head = snake.back(),
+                new_head = snake.back();
             switch(in){
                 case 'W':   case 'S':
                     dire = (in == 'W' ? 'S' : 'W');
@@ -126,6 +114,9 @@ class Snake{
                     new_head.second += (in == 'A' ? -1 : 1);
                     break;
             }
+            if(!isAlive(new_head))
+                return false;
+
             if(new_head != food_pos){
                 map.setXYC(snake.front(), ' ');
                 snake_set.erase(snake.front());
@@ -133,15 +124,26 @@ class Snake{
             }else{
                 GenFood();
             }
+
             snake.push(new_head);
             snake_set.insert(new_head);
-
             map.setXYC(old_head, SNAKE_BODY);
             map.setXYC(new_head, SNAKE_HEAD);
+            return true;
         }
 
-        bool isAlive(){
+        char getDire(){
+            char in;
+            start:
+            cin >> in; in = toupper(in);
+            if(in != dire && (in == 'W' || in == 'S' || in == 'A' || in == 'D'))
+                return in;
+            else
+                goto start;
+        }
 
+        bool isAlive(pos head){
+            return map.getXYChar(head) != SNAKE_BODY && map.getXYChar(head) != WALL;
         }
 
         pos GenFood(){
@@ -159,6 +161,7 @@ class Snake{
 int main(){
     Snake snake;
     while(snake.oper());
-
+    system("cls");
+    cout << "You Are Dead! ;(\n";
     system("PAUSE");
 }
