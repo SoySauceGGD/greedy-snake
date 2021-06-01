@@ -3,6 +3,8 @@
 #include<set>
 #include<random>
 #include<ctime>
+#include<windows.h>
+#include<conio.h>
 
 using namespace std;
 
@@ -39,6 +41,7 @@ class Screen{
                     cout << Map[i][j] << " ";
                 cout << "\n";
             }
+            cout << flush;
         }
 
         void setXYC(int x, int y, char c){
@@ -53,25 +56,12 @@ class Screen{
         }
 };
 
-class RamdomGen{
-    private:
-        random_device rd;
-
-    public:
-        pos gen(){
-            mt19937 generator(rd() + time(NULL));
-            uniform_int_distribution<int> uid(1, N-2);
-            return make_pair(uid(generator), uid(generator));
-        }
-
-};
-
 class Snake{
     private:
         queue<pos> snake;
         set<pos> snake_set;
         Screen map;
-        RamdomGen ramdom;
+        random_device rd;
         char dire;
         pos food_pos;
 
@@ -85,7 +75,7 @@ class Snake{
                 snake_set.insert(make_pair(x + i, y));
                 map.setXYC(x + i, y, SNAKE_BODY);
             }
-            map.setXYC(x + 3, y, SNAKE_HEAD);
+            map.setXYC(snake.back(), SNAKE_HEAD);
             dire = 'W';
             food_pos = GenFood();
             map.print();
@@ -135,7 +125,9 @@ class Snake{
         char getDire(){
             char in;
             start:
-            cin >> in; in = toupper(in);
+            if(kbhit() != 0){
+                in = toupper(_getch());
+            }
             if(in != dire && (in == 'W' || in == 'S' || in == 'A' || in == 'D'))
                 return in;
             else
@@ -147,21 +139,29 @@ class Snake{
         }
 
         pos GenFood(){
-            pos tmp = ramdom.gen();
+            pos tmp = gen();
             auto it = snake_set.find(tmp);
             while(it != snake_set.end()){
-                tmp = ramdom.gen();
+                tmp = gen();
             }
             map.setXYC(tmp, FOOD);
             food_pos = tmp;
             return tmp;
         }
+        
+        pos gen(){
+            mt19937 generator(rd() + time(NULL));
+            uniform_int_distribution<> uid(1, N-2);
+            return make_pair(uid(generator), uid(generator));
+        }
 };
 
 int main(){
+    ios::sync_with_stdio(false);
+    system("mode con cols=62 lines=31");
     Snake snake;
     while(snake.oper());
     system("cls");
-    cout << "You Are Dead! ;(\n";
+    cout << "You Are Dead! ;(" << endl;
     system("PAUSE");
 }
