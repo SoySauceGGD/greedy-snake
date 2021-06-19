@@ -13,7 +13,7 @@ const char FOOD = '+';
 const char SNAKE_HEAD = '@';
 const char SNAKE_BODY = '*';
 
-typedef pair<int, int> pos; // x y coordinates
+typedef pair<int, int> POS; // x y coordinates
 
 class Screen{
     private:
@@ -46,23 +46,23 @@ class Screen{
         void setXYC(int x, int y, char c){
             Map[x][y] = c;
         }
-        void setXYC(pos p, char c){
+        void setXYC(POS p, char c){
             Map[p.first][p.second] = c;
         }
 
-        char getXYChar(pos p){
+        char getXYChar(POS p){
             return Map[p.first][p.second];
         }
 };
 
 class Snake{
     private:
-        queue<pos> snake;
-        set<pos> snake_set;
+        queue<POS> snake;
+        set<POS> snake_set;
         Screen screen;
         random_device rd;
         char dire;
-        pos food_pos;
+        POS food_pos;
         int score;
 
     public:
@@ -85,8 +85,9 @@ class Snake{
                 if(dire != revDirection(tmp) && revDirection(tmp) != ' ')
                     dire = tmp;
             }
+            while(kbhit() != 0) getch();
 
-            pos old_head = snake.back(),
+            POS old_head = snake.back(),
                 new_head = snake.back();
             switch(dire){
                 case 'W':   case 'S':
@@ -113,7 +114,6 @@ class Snake{
             snake_set.insert(new_head);
             screen.setXYC(old_head, SNAKE_BODY);
             screen.setXYC(new_head, SNAKE_HEAD);
-
             screen.print();
             cout << "  ! Press w/s/a/d to move\t! Score = " << score << endl;
             Sleep(250);
@@ -130,12 +130,12 @@ class Snake{
             }
         }
 
-        bool isAlive(pos head){
+        bool isAlive(POS head){
             return screen.getXYChar(head) != SNAKE_BODY && screen.getXYChar(head) != WALL;
         }
 
-        pos GenFood(){
-            pos tmp = gen();
+        POS GenFood(){
+            POS tmp = gen();
             auto it = snake_set.find(tmp);
             while(it != snake_set.end()){
                 tmp = gen();
@@ -144,7 +144,7 @@ class Snake{
             screen.setXYC(tmp, FOOD);
             return tmp;
         }
-        pos gen(){
+        POS gen(){
             mt19937 generator(rd());
             uniform_int_distribution<> uid(1, N-2);
             return make_pair(uid(generator), uid(generator));
@@ -154,10 +154,17 @@ class Snake{
 int main(){
     ios::sync_with_stdio(false);
     system("mode con cols=60 lines=34");
-    Snake snake;
-    while(snake.move());
-    
-    system("cls");
-    cout << "You Are Dead! ;(" << endl;
-    system("PAUSE");
+    start:
+    cout << "Press \'s\' to start, or \'e\' to exit\n" << endl;
+    char c = toupper(getch());
+    switch(c){
+        default : goto start;
+        case 'E' : return 0;
+        case 'S' :
+            Snake snake;
+            while(snake.move());
+            system("cls");
+            cout << "You Are Dead! ;(" << endl;
+            goto start;
+    }
 }
